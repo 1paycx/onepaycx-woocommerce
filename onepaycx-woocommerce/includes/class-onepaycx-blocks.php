@@ -39,7 +39,7 @@ final class OnePayCx_Blocks_Support extends AbstractPaymentMethodType {
 
     public function get_payment_method_data() {
         return array(
-            'title'       => isset($this->settings['title']) ? $this->settings['title'] : __('Pay by card or crypto', 'onepaycx'),
+            'title'       => isset($this->settings['title']) ? $this->settings['title'] : __('Pay by card or crypto', '1pay-cx-payments'),
             'description' => isset($this->settings['description']) ? $this->settings['description'] : '',
             'supports'    => array('products'),
         );

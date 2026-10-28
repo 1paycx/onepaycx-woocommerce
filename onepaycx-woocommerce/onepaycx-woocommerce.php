@@ -1,16 +1,19 @@
 <?php
 /**
- * Plugin Name: 1pay.cx for WooCommerce
+ * Plugin Name: High Risk Card & Crypto Payment Gateway with Instant Payouts
  * Plugin URI: https://1pay.cx/docs#woocommerce
- * Description: Accept card, Bitcoin and Monero payments in WooCommerce with 1pay.cx. Buyers pay on a hosted checkout; you settle in crypto. Paste your API key and go live.
- * Version: 1.1.0
+ * Description: Accept card and crypto payments in WooCommerce with 1pay.cx. Paste your wallet address and start selling with no signup; buyers pay on a hosted checkout and each payment is sent on to your wallet. Already have a 1pay.cx account? Connect it instead.
+ * Version: 3.0.1
  * Author: 1pay.cx
  * Author URI: https://1pay.cx
  * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 6.0
  * Requires PHP: 7.4
+ * Requires Plugins: woocommerce
  * WC requires at least: 7.0
- * Text Domain: onepaycx
+ * WC tested up to: 11.2
+ * Text Domain: 1pay-cx-payments
  *
  * All traffic goes to 1pay.cx / api.1pay.cx only.
  */
@@ -19,9 +22,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ONEPAYCX_VERSION', '1.1.0');
+define('ONEPAYCX_VERSION', '3.0.1');
 define('ONEPAYCX_API_BASE', 'https://api.1pay.cx');   // REST API host (calls /v1/...)
 define('ONEPAYCX_CHECKOUT_BASE', 'https://1pay.cx');  // hosted checkout host (/pay/<id>)
+define('ONEPAYCX_SUPPORT_URL', 'https://t.me/onepaycx_official'); // Telegram channel: merchant questions and support
 define('ONEPAYCX_PLUGIN_FILE', __FILE__);
 define('ONEPAYCX_MIN_PHP', '7.4');
 define('ONEPAYCX_MIN_WC', '7.0');
@@ -139,6 +143,16 @@ add_action('plugins_loaded', function () {
         $gateways[] = 'OnePayCx_Gateway';
         return $gateways;
     });
+
+    // Settings screen only (both handlers check the screen and manage_woocommerce):
+    // finish the 1pay.cx account connect round trip, and show waiting payouts.
+    if (is_admin()) {
+        add_action('admin_init', array('OnePayCx_Gateway', 'maybe_handle_connect'));
+        add_action('admin_notices', array('OnePayCx_Gateway', 'render_admin_notices'));
+        // The settings panel's CSS/JS (that screen only) and its "Create free account" action.
+        add_action('admin_enqueue_scripts', array('OnePayCx_Gateway', 'enqueue_admin_assets'));
+        add_action('admin_post_onepaycx_claim', array('OnePayCx_Gateway', 'handle_claim_request'));
+    }
 });
 
 // Declare compatibility with WooCommerce High-Performance Order Storage (HPOS).
@@ -182,9 +196,13 @@ add_action('woocommerce_blocks_loaded', function () {
     }
 });
 
-// "Settings" link on the Plugins list row.
+// "Settings" and "Telegram support" links on the Plugins list row, before Deactivate.
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), function ($links) {
     $url = admin_url('admin.php?page=wc-settings&tab=checkout&section=onepaycx');
-    array_unshift($links, '<a href="' . esc_url($url) . '">' . esc_html__('Settings', 'onepaycx') . '</a>');
+    array_unshift(
+        $links,
+        '<a href="' . esc_url($url) . '">' . esc_html__('Settings', '1pay-cx-payments') . '</a>',
+        '<a href="' . esc_url(ONEPAYCX_SUPPORT_URL) . '" target="_blank" rel="noopener noreferrer">' . esc_html__('Telegram support', '1pay-cx-payments') . '</a>'
+    );
     return $links;
 });

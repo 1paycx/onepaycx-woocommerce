@@ -1,0 +1,292 @@
+/*
+ * 1pay.cx settings panel (WooCommerce > Settings > Payments > 1pay.cx).
+ * Every rule is scoped under .onepaycx-panel and every class is op- prefixed, so nothing
+ * leaks into (or is caught by) wp-admin's own .card, .notice, .hide and form styles.
+ *
+ * State is carried by real form controls and attributes, not by script: checkboxes and
+ * radios are the source of truth and the CSS reads them (input:checked + ...). The script
+ * only adds the live parts. Without JavaScript the page is a plain form: every card
+ * and every method is shown, and the "Show more" and Disconnect controls are absent.
+ */
+
+.onepaycx-panel {
+	--wp-text: #1d2327;
+	--wp-muted: #646970;
+	--wp-border: #dcdcde;
+	--wp-blue: #2271b1;
+	--ok: #00a32a;
+	--ok-text: #007017;
+	--bad: #d63638;
+	--bad-text: #b32d2e;
+	--warn-bg: #fcf9e8;
+	--warn-border: #dba617;
+	--warn-text: #7a5a00;
+	--lime: #c8f135;
+	--ink: #10140f;
+
+	max-width: 920px;
+	margin: 14px 0 0;
+	font-size: 13px;
+	line-height: normal;
+	color: var(--wp-text);
+}
+.onepaycx-panel *,
+.onepaycx-panel *::before,
+.onepaycx-panel *::after { box-sizing: border-box; }
+.onepaycx-panel img { border: 0; }
+
+/* Mode-specific parts: the server renders the saved mode, the script follows the radios. */
+.onepaycx-panel.is-wallet .only-account,
+.onepaycx-panel.is-account .only-wallet { display: none; }
+/* ...except that without script both cards are shown, so either can be filled in and saved. */
+html:not(.onepaycx-js) .onepaycx-panel .op-modecard { display: block; }
+html:not(.onepaycx-js) .onepaycx-panel .op-jsonly { display: none !important; }
+.onepaycx-panel .hide { display: none !important; }
+.onepaycx-panel .muted { color: var(--wp-muted); }
+.onepaycx-panel .op-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- cards ------------------------------------------------------------------------- */
+.onepaycx-panel .op-card { background: #fff; border: 1px solid var(--wp-border); border-radius: 10px; padding: 20px 22px; margin: 0 0 16px; }
+.onepaycx-panel .op-card h2 { font-size: 15px; font-weight: 600; line-height: normal; margin: 0 0 4px; padding: 0; color: var(--wp-text); }
+.onepaycx-panel .op-card .lead { color: var(--wp-muted); margin: 0 0 16px; font-size: 13px; line-height: 1.5; }
+
+.onepaycx-panel .op-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--ink); color: #fff; border: 0; }
+.onepaycx-panel .op-mark { width: 44px; height: 44px; border-radius: 11px; flex: none; display: block; }
+.onepaycx-panel .op-head .t { font-size: 16px; font-weight: 650; }
+.onepaycx-panel .op-head .s { color: #a9b0a6; font-size: 12px; margin-top: 2px; }
+.onepaycx-panel .op-head .right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #cfd6cb; font-size: 12px; }
+.onepaycx-panel .op-head .op-hlabel { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: #cfd6cb; font-size: 12px; }
+.onepaycx-panel .op-pillstat { background: rgba(200, 241, 53, .15); color: var(--lime); border: 1px solid rgba(200, 241, 53, .35); padding: 3px 9px; border-radius: 999px; font-weight: 600; font-size: 11.5px; }
+.onepaycx-panel .op-pillstat.is-test { background: rgba(219, 166, 23, .18); color: #f4cf6b; border-color: rgba(219, 166, 23, .45); }
+
+/* ---- switches (real checkboxes; the label is the visible track) ---------------------- */
+.onepaycx-panel input.op-flag { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; box-shadow: none; pointer-events: none; }
+.onepaycx-panel input.op-flag::before { display: none; }
+.onepaycx-panel .op-sw { width: 38px; height: 22px; border-radius: 999px; background: #c3c4c7; position: relative; flex: none; cursor: pointer; display: block; margin: 0; padding: 0; border: 0; transition: background .12s; }
+.onepaycx-panel .op-sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .12s, background .12s; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+.onepaycx-panel .op-head .op-sw { background: #3a4236; }
+.onepaycx-panel .op-flag:checked + .op-sw { background: var(--ink); }
+.onepaycx-panel .op-flag:checked + .op-sw::after { left: 19px; background: var(--lime); }
+.onepaycx-panel .op-head .op-flag:checked + .op-sw { background: #4d5a2a; }
+.onepaycx-panel input.op-flag:checked + .op-coin .op-sw { background: var(--ink); }
+.onepaycx-panel input.op-flag:checked + .op-coin .op-sw::after { left: 19px; background: var(--lime); }
+.onepaycx-panel .op-flag:focus-visible + .op-sw,
+.onepaycx-panel .op-flag:focus-visible + .op-tile .op-sw,
+.onepaycx-panel .op-flag:focus-visible + .op-coin .op-sw,
+.onepaycx-panel .op-flag:focus-visible + .op-pill { outline: 2px solid var(--wp-blue); outline-offset: 2px; }
+.onepaycx-panel .op-flag:disabled + .op-tile .op-sw,
+.onepaycx-panel .op-flag:disabled + .op-coin .op-sw { opacity: .4; cursor: not-allowed; }
+
+/* ---- mode cards (radios) -------------------------------------------------------------- */
+.onepaycx-panel .op-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.onepaycx-panel .op-modewrap { position: relative; display: block; margin: 0; }
+.onepaycx-panel .op-mode { display: block; color: #000; height: 100%; border: 2px solid var(--wp-border); border-radius: 12px; padding: 16px; cursor: pointer; position: relative; transition: border-color .12s, box-shadow .12s; background: #fff; text-align: left; }
+.onepaycx-panel .op-modewrap:hover .op-mode { border-color: #a7aaad; }
+.onepaycx-panel .op-mode .dot { position: absolute; top: 16px; right: 16px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #8c8f94; }
+.onepaycx-panel input.op-flag:checked + .op-mode { border-color: var(--ink); box-shadow: 0 0 0 4px rgba(200, 241, 53, .55); }
+.onepaycx-panel input.op-flag:checked + .op-mode .dot { border-color: var(--ink); background: radial-gradient(circle, var(--ink) 0 4px, transparent 5px); }
+.onepaycx-panel input.op-flag:focus-visible + .op-mode { outline: 2px solid var(--wp-blue); outline-offset: 3px; }
+.onepaycx-panel .op-mode .mt { font-size: 14.5px; font-weight: 650; margin-bottom: 4px; padding-right: 28px; }
+.onepaycx-panel .op-mode .md { color: var(--wp-muted); line-height: 1.5; }
+.onepaycx-panel .op-badge { display: inline-block; background: var(--lime); color: var(--ink); font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-bottom: 8px; letter-spacing: .2px; }
+.onepaycx-panel .op-badge.grey { background: #f0f0f1; color: #50575e; }
+
+/* ---- inputs and messages -------------------------------------------------------------- */
+.onepaycx-panel label.fl { display: block; font-weight: 600; margin: 0 0 6px; }
+.onepaycx-panel input.op-in,
+.onepaycx-panel textarea.op-in { width: 100%; max-width: none; min-height: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: normal; padding: 9px 12px; border: 1px solid #8c8f94; border-radius: 6px; background: #fff; color: var(--wp-text); outline: none; box-shadow: none; margin: 0; }
+.onepaycx-panel input.op-in:focus,
+.onepaycx-panel textarea.op-in:focus { border-color: var(--wp-blue); box-shadow: 0 0 0 1px var(--wp-blue); }
+.onepaycx-panel .op-in.txt { font-family: inherit; }
+.onepaycx-panel input.op-in { display: block; }
+.onepaycx-panel textarea.op-in { display: inline-block; min-height: 60px; resize: vertical; }
+.onepaycx-panel [data-evm="valid"] input.op-in.op-evm,
+.onepaycx-panel [data-addr="valid"] input.op-in { border-color: var(--ok); }
+.onepaycx-panel [data-evm="invalid"] input.op-in.op-evm,
+.onepaycx-panel [data-addr="invalid"] input.op-in { border-color: var(--bad); }
+
+.onepaycx-panel .op-msg { display: flex; gap: 6px; align-items: flex-start; margin-top: 7px; font-size: 12.5px; line-height: 1.45; }
+.onepaycx-panel .op-msg.ok { color: var(--ok-text); }
+.onepaycx-panel .op-msg.bad { color: var(--bad-text); }
+.onepaycx-panel .op-msg.warn { color: var(--warn-text); }
+.onepaycx-panel .op-msg svg { flex: none; margin-top: 1px; }
+.onepaycx-panel .op-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.onepaycx-panel .op-chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #f0f0f1; color: #50575e; white-space: nowrap; }
+.onepaycx-panel .op-chip.fast { background: #edfaef; color: #00700f; }
+.onepaycx-panel .op-chip.batch { background: var(--warn-bg); color: var(--warn-text); }
+.onepaycx-panel .op-chip.addr { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f6f7f7; }
+.onepaycx-panel .op-callout { margin-top: 14px; background: var(--warn-bg); border-left: 4px solid var(--warn-border); padding: 10px 12px; border-radius: 0 6px 6px 0; line-height: 1.5; color: #3c3a2e; }
+.onepaycx-panel .op-callout.info { background: #f0f6fc; border-left-color: #72aee6; color: #2c3338; }
+.onepaycx-panel .op-callout.info a { color: var(--wp-blue); }
+
+/* Wallet card: only the message that matches the address state is shown. */
+.onepaycx-panel [data-evm] .m-empty,
+.onepaycx-panel [data-evm] .m-valid,
+.onepaycx-panel [data-evm] .m-invalid { display: none; }
+.onepaycx-panel [data-evm="empty"] .m-empty,
+.onepaycx-panel [data-evm="valid"] .m-valid,
+.onepaycx-panel [data-evm="invalid"] .m-invalid { display: flex; }
+.onepaycx-panel [data-evm="valid"] .op-chips.m-valid { display: flex; }
+
+/* ---- method tiles ---------------------------------------------------------------------- */
+.onepaycx-panel .op-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 10px; }
+.onepaycx-panel .op-tilebox { position: relative; display: block; }
+.onepaycx-panel .op-tile { border: 1px solid var(--wp-border); border-radius: 10px; padding: 11px 12px; display: flex; align-items: center; gap: 10px; background: #fff; transition: border-color .12s, background .12s; height: 100%; }
+/* A method is on while its (switch-off) box is NOT ticked: the posted list is the blocklist. */
+.onepaycx-panel input.op-flag:not(:checked) + .op-tile { border-color: #b5bfa6; background: #fbfdf5; }
+.onepaycx-panel input.op-flag:not(:checked) + .op-tile .op-sw { background: var(--ink); }
+.onepaycx-panel input.op-flag:not(:checked) + .op-tile .op-sw::after { left: 19px; background: var(--lime); }
+.onepaycx-panel .op-ico { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: #fff; font: 700 11px/1 ui-sans-serif, system-ui; flex: none; letter-spacing: -.2px; }
+.onepaycx-panel img.op-ico.img { background: #fff; border: 1px solid #eee; object-fit: contain; padding: 3px; }
+.onepaycx-panel .op-ico.round { border-radius: 50%; }
+.onepaycx-panel .op-tile .nm { font-weight: 600; }
+.onepaycx-panel .op-tile .sb { color: var(--wp-muted); font-size: 11.5px; margin-top: 1px; }
+.onepaycx-panel .op-tile .grow { flex: 1; min-width: 0; }
+.onepaycx-panel .op-more { margin-top: 12px; }
+.onepaycx-panel .op-linkish { color: var(--wp-blue); cursor: pointer; text-decoration: underline; background: none; border: 0; padding: 0; margin: 0; font: inherit; font-size: 12.5px; box-shadow: none; }
+.onepaycx-panel .op-linkish:hover { color: #135e96; }
+.onepaycx-panel a.op-linkish { display: inline-block; }
+/* Extra methods stay in the form (hidden ones still post) and fold away only with script. */
+html.onepaycx-js .onepaycx-panel:not(.show-all) .op-tilebox.is-extra { display: none; }
+.onepaycx-panel .op-more .t-less { display: none; }
+.onepaycx-panel.show-all .op-more .t-more { display: none; }
+.onepaycx-panel.show-all .op-more .t-less { display: inline; }
+.onepaycx-panel .op-note { margin-top: 12px; }
+
+/* ---- crypto: networks ------------------------------------------------------------------ */
+.onepaycx-panel .op-sect { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--wp-muted); font-weight: 600; margin: 4px 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.onepaycx-panel .op-sect .op-chip { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.onepaycx-panel .op-sect .op-chip.addr { font-weight: 600; }
+.onepaycx-panel.is-wallet.evm-missing .chip-addr,
+.onepaycx-panel.is-wallet:not(.evm-missing) .chip-missing { display: none; }
+.onepaycx-panel .op-nets { border: 1px solid var(--wp-border); border-radius: 10px; overflow: hidden; }
+.onepaycx-panel .op-net { display: grid; grid-template-columns: 130px 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid #f0f0f1; }
+.onepaycx-panel .op-net:first-child { border-top: 0; }
+.onepaycx-panel .op-net .nn { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.onepaycx-panel .op-net .nn img { border-radius: 50%; }
+.onepaycx-panel .op-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.onepaycx-panel .op-pillwrap { position: relative; display: inline-flex; margin: 0; cursor: pointer; }
+.onepaycx-panel .op-pill { border: 1px solid #c3c4c7; border-radius: 999px; padding: 4px 11px 4px 9px; font-size: 13px; font-weight: 400; line-height: normal; cursor: pointer; background: #fff; color: #2c3338; display: inline-flex; align-items: center; gap: 5px; }
+.onepaycx-panel .op-pill::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #a7aaad; box-sizing: border-box; }
+.onepaycx-panel input.op-flag:checked + .op-pill { background: var(--ink); color: #fff; border-color: var(--ink); }
+.onepaycx-panel input.op-flag:checked + .op-pill::before { border: 0; background: var(--lime) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6.2l2 2 4-4.4' fill='none' stroke='%2310140f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
+.onepaycx-panel input.op-flag:disabled + .op-pill { opacity: .45; cursor: not-allowed; }
+.onepaycx-panel .op-net .meta { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+/* No wallet yet (wallet mode): every method and EVM coin reads as off and cannot be toggled. */
+.onepaycx-panel.is-wallet.evm-missing .op-blockable { opacity: .45; }
+.onepaycx-panel.is-wallet.evm-missing .op-tilebox.op-blockable { opacity: 1; }
+.onepaycx-panel.is-wallet.evm-missing .op-tilebox .op-sw { opacity: .4; cursor: not-allowed; }
+.onepaycx-panel.is-wallet.evm-missing input.op-flag:not(:checked) + .op-tile { border-color: var(--wp-border); background: #fff; }
+.onepaycx-panel.is-wallet.evm-missing input.op-flag:not(:checked) + .op-tile .op-sw { background: #c3c4c7; }
+.onepaycx-panel.is-wallet.evm-missing input.op-flag:not(:checked) + .op-tile .op-sw::after { left: 3px; background: #fff; }
+.onepaycx-panel.is-wallet.evm-missing .op-pillwrap.op-blockable { cursor: not-allowed; }
+.onepaycx-panel.is-wallet.evm-missing .op-pillwrap.op-blockable .op-pill { cursor: not-allowed; }
+.onepaycx-panel.is-wallet.evm-missing .op-pillwrap.op-blockable input.op-flag:checked + .op-pill { background: #fff; color: #2c3338; border-color: #c3c4c7; }
+.onepaycx-panel.is-wallet.evm-missing .op-pillwrap.op-blockable input.op-flag:checked + .op-pill::before { border: 1.5px solid #a7aaad; background: none; }
+
+/* ---- crypto: coins with their own address ------------------------------------------------ */
+.onepaycx-panel .op-coins { display: grid; gap: 10px; }
+.onepaycx-panel .op-coinbox { position: relative; display: block; }
+.onepaycx-panel .op-coin { border: 1px solid var(--wp-border); border-radius: 10px; background: #fff; transition: border-color .12s, background .12s; }
+.onepaycx-panel input.op-flag:checked + .op-coin { border-color: #b5bfa6; background: #fbfdf5; }
+.onepaycx-panel.is-wallet input.op-flag:checked + .op-coin:not([data-addr="valid"]):not([data-addr="kept"]) { border-color: var(--warn-border); background: #fffdf3; }
+.onepaycx-panel .op-coin .row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
+.onepaycx-panel .op-coin .nm { font-weight: 600; }
+.onepaycx-panel .op-coin .sb { color: var(--wp-muted); font-size: 11.5px; margin-top: 1px; }
+.onepaycx-panel .op-coin .grow { flex: 1; min-width: 0; }
+.onepaycx-panel .op-coin .body { display: none; padding: 0 14px 14px 58px; }
+.onepaycx-panel input.op-flag:checked + .op-coin .body { display: block; }
+html:not(.onepaycx-js) .onepaycx-panel .op-coin .body { display: block; }
+.onepaycx-panel .op-coin .state { font-size: 11.5px; font-weight: 600; white-space: nowrap; display: none; }
+.onepaycx-panel .op-coin .state.ok { color: var(--ok-text); }
+.onepaycx-panel .op-coin .state.need { color: var(--warn-text); }
+.onepaycx-panel.is-account input.op-flag:checked + .op-coin .st-ok,
+.onepaycx-panel.is-wallet input.op-flag:checked + .op-coin[data-addr="valid"] .st-ok,
+.onepaycx-panel.is-wallet input.op-flag:checked + .op-coin[data-addr="kept"] .st-ok,
+.onepaycx-panel.is-wallet input.op-flag:checked + .op-coin[data-addr="empty"] .st-empty,
+.onepaycx-panel.is-wallet input.op-flag:checked + .op-coin[data-addr="invalid"] .st-invalid { display: inline; }
+html:not(.onepaycx-js) .onepaycx-panel .op-coin .state { display: none !important; }
+.onepaycx-panel .op-coin .a-empty,
+.onepaycx-panel .op-coin .a-valid,
+.onepaycx-panel .op-coin .a-invalid { display: none; }
+.onepaycx-panel .op-coin[data-addr="empty"] .a-empty,
+.onepaycx-panel .op-coin[data-addr="valid"] .a-valid,
+.onepaycx-panel .op-coin[data-addr="invalid"] .a-invalid { display: flex; }
+.onepaycx-panel .op-subp { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.onepaycx-panel .op-subp span.lbl { color: var(--wp-muted); font-size: 12px; margin-right: 2px; }
+/* Solana and TRON: the card switch is for script only (op-jsonly); without script the token pills are the control. */
+
+/* ---- account card ---------------------------------------------------------------------------- */
+.onepaycx-panel .op-btn-dark { background: var(--ink); color: #fff; border: 0; border-radius: 8px; padding: 11px 16px; font-weight: 650; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-size: 14px; text-decoration: none; line-height: normal; }
+.onepaycx-panel .op-btn-dark:hover,
+.onepaycx-panel .op-btn-dark:focus { color: #fff; background: #1d2418; }
+.onepaycx-panel .op-btn-dark .mk { width: 22px; height: 22px; border-radius: 6px; }
+.onepaycx-panel .op-conn { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #b8e6bf; background: #edfaef; border-radius: 10px; }
+.onepaycx-panel .op-conn .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: var(--lime); display: grid; place-items: center; font-weight: 700; flex: none; }
+.onepaycx-panel .op-conn .grow { flex: 1; min-width: 0; }
+.onepaycx-panel .op-conn .grow .n { font-weight: 650; }
+.onepaycx-panel .op-conn .grow .d { color: var(--wp-muted); font-size: 12px; }
+.onepaycx-panel.is-connected .op-notconn,
+.onepaycx-panel:not(.is-connected) .op-connbox { display: none; }
+.onepaycx-panel .op-keyline { margin-top: 14px; }
+.onepaycx-panel .op-keybox { margin-top: 10px; }
+.onepaycx-panel .op-keybox .op-msg { margin-top: 7px; }
+html.onepaycx-js .onepaycx-panel .op-keybox.is-collapsed { display: none; }
+.onepaycx-panel .op-keyline .t-conn { display: none; }
+.onepaycx-panel.is-connected .op-keyline .t-conn { display: inline; }
+.onepaycx-panel.is-connected .op-keyline .t-new { display: none; }
+.onepaycx-panel .op-pill-wallet, .onepaycx-panel .op-pill-conn, .onepaycx-panel .op-pill-noconn { display: none; }
+.onepaycx-panel.is-wallet .op-pill-wallet,
+.onepaycx-panel.is-account.is-connected .op-pill-conn,
+.onepaycx-panel.is-account:not(.is-connected) .op-pill-noconn { display: inline-block; }
+
+/* ---- checkout text, CTA, fees, save ------------------------------------------------------------- */
+.onepaycx-panel .op-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+.onepaycx-panel .op-check { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; }
+.onepaycx-panel .op-check input[type="checkbox"] { margin: 1px 0 0; }
+.onepaycx-panel .op-cta { display: flex; align-items: center; gap: 16px; background: var(--ink); color: #e9ede6; border-radius: 10px; padding: 16px 20px; margin: 0 0 16px; }
+.onepaycx-panel .op-cta .ct { font-weight: 650; font-size: 14px; color: #fff; }
+.onepaycx-panel .op-cta .cs { color: #a9b0a6; font-size: 12.5px; margin-top: 2px; }
+.onepaycx-panel .op-btn-lime { margin-left: auto; background: var(--lime); color: var(--ink); border: 0; border-radius: 8px; padding: 9px 14px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; font-size: 13px; line-height: normal; }
+.onepaycx-panel .op-btn-lime:hover,
+.onepaycx-panel .op-btn-lime:focus { color: var(--ink); background: #d4f75a; }
+.onepaycx-panel .op-btn-lime.is-disabled { opacity: .45; cursor: not-allowed; }
+.onepaycx-panel .op-fees { color: var(--wp-muted); font-size: 12px; margin: 4px 0 16px; line-height: 1.5; }
+.onepaycx-panel .op-savebar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.onepaycx-panel .op-savebar .button-primary { padding: 0 14px; min-height: 32px; }
+.onepaycx-panel .op-terms { color: var(--wp-muted); font-size: 12px; margin: 10px 0 0; }
+.onepaycx-panel .op-terms a { color: var(--wp-blue); }
+
+@media (max-width: 760px) {
+	.onepaycx-panel .op-modes,
+	.onepaycx-panel .op-row2 { grid-template-columns: 1fr; }
+	.onepaycx-panel .op-net { grid-template-columns: 1fr; gap: 8px; }
+	.onepaycx-panel .op-net .meta { justify-content: flex-start; }
+	.onepaycx-panel .op-coin .body { padding-left: 14px; }
+	.onepaycx-panel .op-cta { flex-direction: column; align-items: flex-start; }
+	.onepaycx-panel .op-btn-lime { margin-left: 0; }
+	.onepaycx-panel .op-head .right { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.onepaycx-panel *, .onepaycx-panel *::before, .onepaycx-panel *::after { transition: none !important; }
+}
+
+/* ---- Telegram support: header button and the row above Save ---------------------------- */
+.onepaycx-panel .op-help { display: inline-flex; align-items: center; gap: 6px; color: #e9ede6; text-decoration: none; border: 1px solid rgba(233, 237, 230, .35); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 11.5px; line-height: normal; }
+.onepaycx-panel .op-help:hover,
+.onepaycx-panel .op-help:focus { color: #fff; border-color: rgba(233, 237, 230, .7); }
+.onepaycx-panel .op-help:focus-visible,
+.onepaycx-panel .op-btn-outline:focus-visible { outline: 2px solid var(--wp-blue); outline-offset: 2px; box-shadow: none; }
+.onepaycx-panel .op-support { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--wp-border); border-radius: 10px; padding: 14px 20px; margin: 0 0 16px; }
+.onepaycx-panel .op-support-icon { width: 36px; height: 36px; border-radius: 50%; background: #e7f3fd; color: var(--wp-blue); display: flex; align-items: center; justify-content: center; flex: none; }
+.onepaycx-panel .op-support-icon svg { width: 18px; height: 18px; }
+.onepaycx-panel .op-support .ct { font-weight: 650; font-size: 14px; }
+.onepaycx-panel .op-support .cs { color: var(--wp-muted); font-size: 12.5px; margin-top: 2px; }
+.onepaycx-panel .op-btn-outline { margin-left: auto; border: 1px solid var(--wp-blue); color: var(--wp-blue); border-radius: 8px; padding: 8px 14px; font-weight: 600; text-decoration: none; white-space: nowrap; font-size: 13px; line-height: normal; }
+.onepaycx-panel .op-btn-outline:hover,
+.onepaycx-panel .op-btn-outline:focus { color: #135e96; border-color: #135e96; background: #f0f6fc; }
+@media (max-width: 760px) {
+	.onepaycx-panel .op-support { flex-wrap: wrap; }
+	.onepaycx-panel .op-btn-outline { margin-left: 0; }
+}
